@@ -1,0 +1,68 @@
+
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id             String           @id @default(cuid())
+  name           String
+  email          String           @unique
+  password       String
+  role           Role             @default(EMPLOYEE)
+  department     Department?      @relation(fields: [departmentId], references: [id])
+  departmentId   String?
+  position       String?
+  status         EmployeeStatus   @default(ACTIVE)
+  joinDate       DateTime         @default(now())
+  attendances    Attendance[]
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+}
+
+model Department {
+  id          String    @id @default(cuid())
+  name        String    @unique
+  employees   User[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Attendance {
+  id          String          @id @default(cuid())
+  date        DateTime        @default(now())
+  checkIn     DateTime?
+  checkOut    DateTime?
+  status      AttendanceStatus
+  user        User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId      String
+  notes       String?
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  @@unique([userId, date])
+}
+
+enum Role {
+  ADMIN
+  MANAGER
+  EMPLOYEE
+}
+
+enum EmployeeStatus {
+  ACTIVE
+  INACTIVE
+  ON_LEAVE
+}
+
+enum AttendanceStatus {
+  PRESENT
+  ABSENT
+  LATE
+  HALF_DAY
+}
